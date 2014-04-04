@@ -41,8 +41,10 @@ function git_prompt_config()
   local Yellow="\[\033[0;33m\]"
   local White='\[\033[37m\]'
   local Red="\[\033[0;31m\]"
+  local BackRed="\[\033[1;41m\]"
   local Blue="\[\033[0;34m\]"
   local Cyan="\[\033[0;36m\]"
+  local Green="\[\033[0;32m\]"
 
   # source the user's ~/.git-prompt-colors.sh file, or the one that should be
   # sitting in the same directory as this script
