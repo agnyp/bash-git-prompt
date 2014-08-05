@@ -30,6 +30,7 @@ function git_prompt_config()
   # Bold
   local BoldGreen="\[\033[1;32m\]"    # Green
   local BoldBlue="\[\033[1;34m\]"     # Blue
+  local BoldCyan="\[\033[1;36m\]"     # Cyan
 
   # High Intensty
   local IntenseBlack="\[\033[0;90m\]" # Grey
@@ -70,14 +71,14 @@ function git_prompt_config()
     # there.
     GIT_PROMPT_PREFIX="["
     GIT_PROMPT_SUFFIX="]"
-    GIT_PROMPT_SEPARATOR="|"
-    GIT_PROMPT_BRANCH="${Magenta}"
-    GIT_PROMPT_STAGED="${Red}●"
-    GIT_PROMPT_CONFLICTS="${Red}✖"
-    GIT_PROMPT_CHANGED="${Blue}✚"
+    GIT_PROMPT_SEPARATOR=" |"
+    GIT_PROMPT_BRANCH="${BoldCyan}"
+    GIT_PROMPT_STAGED="${Green}!"
+    GIT_PROMPT_CONFLICTS="${Red} "
+    GIT_PROMPT_CHANGED="${Blue}+"
     GIT_PROMPT_REMOTE=" "
     GIT_PROMPT_UNTRACKED="${Cyan}…"
-    GIT_PROMPT_STASHED="${BoldBlue}⚑"
+    GIT_PROMPT_STASHED="${BoldBlue} "
     GIT_PROMPT_CLEAN="${BoldGreen}✔"
     
     # Please do not add colors to these symbols
