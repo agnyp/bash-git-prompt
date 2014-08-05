@@ -46,6 +46,10 @@ function git_prompt_config()
   local Cyan="\[\033[0;36m\]"
   local Green="\[\033[0;32m\]"
 
+  #Checking if root to change output
+  _isroot=false
+  [[ $UID -eq 0 ]] && _isroot=true
+
   # source the user's ~/.git-prompt-colors.sh file, or the one that should be
   # sitting in the same directory as this script
 
@@ -61,6 +65,13 @@ function git_prompt_config()
       done
     done
   fi
+
+   # Various variables you might want for your PS1 prompt instead
+  local Time12a="\$(date +%H:%M)"
+  # local Time12a="(\$(date +%H:%M:%S))"
+  # local Time12a="(\@))"
+  local PathShort="\w"
+
   # if the envar is defined, source the file for custom colors
   if [[ -n "$__GIT_PROMPT_COLORS_FILE" && -f "$__GIT_PROMPT_COLORS_FILE" ]]; then
     source "$__GIT_PROMPT_COLORS_FILE"
@@ -79,27 +90,46 @@ function git_prompt_config()
     GIT_PROMPT_UNTRACKED="${Cyan}…"
     GIT_PROMPT_STASHED="${BoldBlue}⚑"
     GIT_PROMPT_CLEAN="${BoldGreen}✔"
-    
+    GIT_PROMPT_COMMAND_OK="${Green}✔ "
+    GIT_PROMPT_COMMAND_FAIL="${Red}✘ "
+
+    GIT_PROMPT_START_USER="${Yellow}${PathShort}${ResetColor}"
+    GIT_PROMPT_START_ROOT="${Yellow}${PathShort}${ResetColor}"
+    GIT_PROMPT_END_USER=" \n${White}${Time12a}${ResetColor} $ "
+    GIT_PROMPT_END_ROOT=" \n${White}${Time12a}${ResetColor} # "
+
     # Please do not add colors to these symbols
     GIT_PROMPT_SYMBOLS_AHEAD="↑·"
     GIT_PROMPT_SYMBOLS_BEHIND="↓·"
     GIT_PROMPT_SYMBOLS_PREHASH=":"
   fi
 
-  # Various variables you might want for your PS1 prompt instead
-  local Time12a="\$(date +%H:%M)"
-  # local Time12a="(\$(date +%H:%M:%S))"
-  # local Time12a="(\@))"
-  local PathShort="\w"
+  if [ "x${GIT_PROMPT_SHOW_LAST_COMMAND_INDICATOR}" == "x1" ]; then
+  	if [ $LAST_COMMAND_STATE = 0 ]; then
+  		LAST_COMMAND_INDICATOR="${GIT_PROMPT_COMMAND_OK}";
+  	else
+  		LAST_COMMAND_INDICATOR="${GIT_PROMPT_COMMAND_FAIL}";
+  	fi
+  fi
 
   if [ "x${GIT_PROMPT_START}" == "x" ]; then
-    PROMPT_START="${Yellow}${PathShort}${ResetColor}"
+    #First statment is for non root behavior second for root
+    if $_isroot; then
+      PROMPT_START="${GIT_PROMPT_START_ROOT}"
+    else
+      PROMPT_START="${GIT_PROMPT_START_USER}"
+    fi
   else
     PROMPT_START="${GIT_PROMPT_START}"
   fi
 
   if [ "x${GIT_PROMPT_END}" == "x" ]; then
-    PROMPT_END=" \n${White}${Time12a}${ResetColor} $ "
+    #First statment is for non root behavior second for root
+    if ! $_isroot; then
+      PROMPT_END="${GIT_PROMPT_END_USER}"
+    else
+      PROMPT_END="${GIT_PROMPT_END_ROOT}"
+    fi
   else
     PROMPT_END="${GIT_PROMPT_END}"
   fi
@@ -115,9 +145,11 @@ function git_prompt_config()
     EMPTY_PROMPT=$OLD_GITPROMPT
   else
     if [[ -n "${VIRTUAL_ENV}" ]]; then
-      EMPTY_PROMPT="(${Blue}$(basename "${VIRTUAL_ENV}")${ResetColor}) ${PROMPT_START}$($prompt_callback)${PROMPT_END}"
+      EMPTY_PROMPT="${LAST_COMMAND_INDICATOR}(${Blue}$(basename "${VIRTUAL_ENV}")${ResetColor}) ${PROMPT_START}$($prompt_callback)${PROMPT_END}"
+    elif [[ -n "${CONDA_DEFAULT_ENV}" ]]; then
+      EMPTY_PROMPT="${LAST_COMMAND_INDICATOR}(${Blue}$(basename "${CONDA_DEFAULT_ENV}")${ResetColor}) ${PROMPT_START}$($prompt_callback)${PROMPT_END}"
     else
-      EMPTY_PROMPT="${PROMPT_START}$($prompt_callback)${PROMPT_END}"
+      EMPTY_PROMPT="${LAST_COMMAND_INDICATOR}${PROMPT_START}$($prompt_callback)${PROMPT_END}"
     fi
   fi
 
@@ -139,6 +171,7 @@ function git_prompt_config()
 }
 
 function setGitPrompt() {
+  LAST_COMMAND_STATE=$?
 
   local EMPTY_PROMPT
   local __GIT_STATUS_CMD
@@ -151,7 +184,19 @@ function setGitPrompt() {
     return
   fi
 
-  checkUpstream
+  local FETCH_REMOTE_STATUS=1
+  if [[ "x${GIT_PROMPT_FETCH_REMOTE_STATUS}" == "x0" ]]; then
+    FETCH_REMOTE_STATUS=0
+  fi
+
+  if [[ -e "${repo}/.bash-git-rc" ]]; then
+  	source "${repo}/.bash-git-rc"
+  fi
+
+  if [ "x${FETCH_REMOTE_STATUS}" == "x1" ]; then
+  	checkUpstream
+  fi
+
   updatePrompt
 }
 
@@ -184,13 +229,13 @@ function updatePrompt() {
   local GIT_PROMPT_UNTRACKED
   local GIT_PROMPT_STASHED
   local GIT_PROMPT_CLEAN
+  local LAST_COMMAND_INDICATOR
   local PROMPT_LEADING_SPACE
   local PROMPT_START
   local PROMPT_END
   local EMPTY_PROMPT
   local GIT_PROMPT_FETCH_TIMEOUT
   local __GIT_STATUS_CMD
-
   local Blue="\[\033[0;34m\]"
 
   git_prompt_config
@@ -245,9 +290,13 @@ function updatePrompt() {
     STATUS="${STATUS}${ResetColor}${GIT_PROMPT_SUFFIX}"
 
 
-    PS1="${PROMPT_START}$($prompt_callback)${STATUS}${PROMPT_END}"
+    PS1="${LAST_COMMAND_INDICATOR}${PROMPT_START}$($prompt_callback)${STATUS}${PROMPT_END}"
     if [[ -n "${VIRTUAL_ENV}" ]]; then
       PS1="(${Blue}$(basename ${VIRTUAL_ENV})${ResetColor}) ${PS1}"
+    fi
+
+    if [[ -n "${CONDA_DEFAULT_ENV}" ]]; then
+      PS1="(${Blue}$(basename ${CONDA_DEFAULT_ENV})${ResetColor}) ${PS1}"
     fi
 
   else
@@ -259,23 +308,37 @@ function prompt_callback_default {
     return
 }
 
-if [ "`type -t prompt_callback`" = 'function' ]; then
-    prompt_callback="prompt_callback"
-else
-    prompt_callback="prompt_callback_default"
-fi
+function run {
+  if [ "`type -t prompt_callback`" = 'function' ]; then
+      prompt_callback="prompt_callback"
+  else
+      prompt_callback="prompt_callback_default"
+  fi
 
-if [ -z "$OLD_GITPROMPT" ]; then
-  OLD_GITPROMPT=$PS1
-fi
+  if [ -z "$OLD_GITPROMPT" ]; then
+    OLD_GITPROMPT=$PS1
+  fi
 
-if [ -z "$PROMPT_COMMAND" ]; then
-  PROMPT_COMMAND=setGitPrompt
-else
-  PROMPT_COMMAND=${PROMPT_COMMAND%% }; # remove trailing spaces
-  PROMPT_COMMAND=${PROMPT_COMMAND%\;}; # remove trailing semi-colon
-  PROMPT_COMMAND="$PROMPT_COMMAND;setGitPrompt"
-fi
+  if [ -z "$PROMPT_COMMAND" ]; then
+    PROMPT_COMMAND=setGitPrompt
+  else
+    PROMPT_COMMAND=${PROMPT_COMMAND%% }; # remove trailing spaces
+    PROMPT_COMMAND=${PROMPT_COMMAND%\;}; # remove trailing semi-colon
 
-git_prompt_dir
-source "$__GIT_PROMPT_DIR/git-prompt-help.sh"
+    local new_entry="setGitPrompt"
+    case ";$PROMPT_COMMAND;" in
+      *";$new_entry;"*)
+        # echo "PROMPT_COMMAND already contains: $new_entry"
+        :;;
+      *)
+        PROMPT_COMMAND="$PROMPT_COMMAND;$new_entry"
+        # echo "PROMPT_COMMAND does not contain: $new_entry"
+        ;;
+    esac
+  fi
+
+  git_prompt_dir
+  source "$__GIT_PROMPT_DIR/git-prompt-help.sh"
+}
+
+run
