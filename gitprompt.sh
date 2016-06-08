@@ -34,6 +34,7 @@ function git_prompt_config()
   local Yellow="\[\033[0;33m\]"       # Yellow
   local Blue="\[\033[0;34m\]"         # Blue
   local Purple="\[\033[0;35m\]"       # Purple
+	local Pink="\[\033[0;49;95m\]"			# Pink
   local Cyan="\[\033[0;36m\]"         # Cyan
   local White="\[\033[0;37m\]"        # White
 
@@ -97,33 +98,6 @@ function git_prompt_config()
   local On_ICyan="\[\033[0;106m\]"    # Cyan
   local On_IWhite="\[\033[0;107m\]"   # White
 
-
-
-
-
-
-
-#  # Bold
-  #local BoldBlue="\[\033[1;34m\]"     # Blue
-  #local BoldCyan="\[\033[1;36m\]"     # Cyan
- # local BoldGreen="\[\033[1;32m\]"    # Green
-  #local BoldPink="\[\033[1;35m\]"     # Pink
-  #local BoldWhite="\[\033[1;37m\]"    # White
-#
-  ## High Intensty
-  #local IntenseBlack="\[\033[0;90m\]" # Grey
-#
-  ## Bold High Intensty
-  #local Magenta="\[\033[1;95m\]"      # Purple
-#
-  ## Regular Colors
-  #local Yellow="\[\033[0;33m\]"
-  #local White='\[\033[37m\]'
-  #local Red="\[\033[0;31m\]"
-  #local BackRed="\[\033[1;41m\]"
-  #local Blue="\[\033[0;34m\]"
-  #local Cyan="\[\033[0;36m\]"
-  #local Green="\[\033[0;32m\]"
 
   #Checking if root to change output
   _isroot=false
