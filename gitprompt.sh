@@ -280,7 +280,7 @@ function updatePrompt() {
     fi
 
     if [ "${GIT_STASHED}" -ne "0" ]; then
-      STATUS="${STATUS}${GIT_PROMPT_STASHED}${GIT_STASHED}${ResetColor}"
+      STATUS="${STATUS}${GIT_PROMPT_STASHED} ${GIT_STASHED}${ResetColor}"
     fi
 
     if [ "${GIT_CLEAN}" -eq "1" ]; then
