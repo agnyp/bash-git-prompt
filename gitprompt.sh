@@ -289,7 +289,8 @@ function updatePrompt() {
     fi
 
     if [ "`git config vcsh.vcsh`" == "true" ]; then
-      VCSH_INDICATOR="[${Red}vcsh${ResetColor}]"
+      local repo=`echo $GIT_DIR|cut -d "/" -f7|cut -d "." -f1`
+      VCSH_INDICATOR="[${Red}vcsh${ResetColor}-${repo}]"
     fi
 
     STATUS="${STATUS}${ResetColor}${GIT_PROMPT_SUFFIX}"
