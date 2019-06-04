@@ -237,6 +237,7 @@ function updatePrompt() {
   local GIT_PROMPT_FETCH_TIMEOUT
   local __GIT_STATUS_CMD
   local Blue="\[\033[0;34m\]"
+  local Red="\[\033[1;31m\]"
 
   git_prompt_config
 
@@ -287,10 +288,14 @@ function updatePrompt() {
       STATUS="${STATUS}${GIT_PROMPT_CLEAN}"
     fi
 
+    if [ "`git config vcsh.vcsh`" == "true" ]; then
+      VCSH_INDICATOR="[${Red}vcsh${ResetColor}]"
+    fi
+
     STATUS="${STATUS}${ResetColor}${GIT_PROMPT_SUFFIX}"
 
 
-    PS1="${LAST_COMMAND_INDICATOR}${PROMPT_START}$($prompt_callback)${STATUS}${PROMPT_END}"
+    PS1="${VCSH_INDICATOR}${LAST_COMMAND_INDICATOR}${PROMPT_START}$($prompt_callback)${STATUS}${PROMPT_END}"
     if [[ -n "${VIRTUAL_ENV}" ]]; then
       PS1="(${Blue}$(basename ${VIRTUAL_ENV})${ResetColor}) ${PS1}"
     fi
